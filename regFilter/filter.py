@@ -57,6 +57,7 @@ class Filter:
 
         X = X.reshape(-1, 1)
         reg = LinearRegression()
+        reg = LinearRegression()
         reg.fit(X, y)
         sc = reg.score(X, y)
         b1 = reg.coef_[0][0]
@@ -71,6 +72,7 @@ class Filter:
 
             plt.xticks([0, 1, 2, 3, 4], ['0', '1', '2', '3', '4'])
             plt.text(y[2,0], X[1,0], r"$R^2=%s$" % np.round(sc, 3))
+            plt.show()
 
         if sig=='-':
             if sc > r2 and b1 < 0:
