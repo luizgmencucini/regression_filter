@@ -1,5 +1,6 @@
 import click
 import time
+import os
 import re
 import json
 
@@ -117,9 +118,60 @@ def match_tables(queryq, queryf, refq, reff, mgf, ppm, rtabs, out):
              'Inter match spectra': len(set(ind).intersection(set(qtab['row ID'].astype(str))))
             }
     with open('%s_stats.json' % out) as f:
-        json.dump(stats, out)
+        json.dump(stats, f)
 
     qtab.to_csv('%s_match.tsv' % out, sep='\t', index=None)
+
+@reg_filt.command()
+@click.option("--feat",
+              help="Feature table")
+@click.option("--idx",
+              help="Feature index")
+@click.option("--path",
+              help="Path to raw files")
+@click.option("--ppm",
+              default=15,
+              help="Part Per milion search difference")
+@click.option("--rtabs",
+              default=20,
+              help="Absolute retention time search difference")
+@click.option("--tp",
+              default='TI',
+              help="Type, either TI or BP")
+def plot_xic(feat, idx, path, ppm, rtabs, tp):
+    samp = pd.read_csv(feat)
+
+    fnames = samp.columns
+    fnames = fnames[fnames.str.contains('Peak area')].str.replace(' Peak area', '').tolist()
+    for fn in fnames:
+        mzml = re.sub('.mzXML$', '.mzML', fn)
+        if not os.path.exists(f'{path}/{mzml}'):
+            mzXML2mzML(f'{path}/{fn}')
+
+    cm = plt.get_cmap('gist_rainbow')
+
+    cdict = {}
+    for i in range(len(fnames)):
+        cdict[re.sub('_MS1.*', '', fnames[i]).split('_')[2]] = i
+
+    for k,v in cdict.items():
+        cdict[k] = cm(v/3*3.0/len(cdict))
+
+    for fn in fnames:
+        leg = re.sub('_MS1.*', '', fn)
+        cid = leg.split('_')[2]
+        fn.replace('mzXML', 'mzML')
+        exp = loadExp(f'{path}/{fn}')
+        tic = getTIC(exp)
+        mz = samp.loc[int(idx), 'row m/z']
+        rt = samp.loc[int(idx), 'row retention time']
+        xic = getXIC(mz, rt*60, tic, type=tp, rttol=rtabs,
+                     ppm=ppm)
+        plt.plot(xic['rt'], xic['xic'], color=cdict[cid], label=leg)
+        exp.reset()
+
+    plt.legend(fontsize=10)
+    plt.show()
 
 if __name__ == '__main__':
     reg_filt()
