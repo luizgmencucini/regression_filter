@@ -15,7 +15,7 @@ class Filter:
 
 
     def formatFeatures(self, col_pattern='Peak area', meta=None,
-                       norm=True):
+                       norm=True, pos=2):
         if type(self.features)==str:
             feat_tab = pd.read_csv(self.features)
         else:
@@ -25,7 +25,7 @@ class Filter:
         if meta is None:
             meta = feat_area.columns.str.replace('.mzXML Peak area', '').str.split('_').tolist()
             # assumes DILX dilution factor is on position 3
-            meta = [x[2] for x in meta]
+            meta = [x[pos] for x in meta]
 
         # Normalize samples
         # scale?

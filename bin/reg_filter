@@ -45,13 +45,16 @@ def reg_filt():
 @click.option("--score",
               default=0.9,
               help="Regression determination coefficient")
+@click.option("--pos",
+              default=2,
+              help="Position of dilution factor code in _ separated name")
 @click.option("--out",
               default='',
               help="Optional output file")
-def filter(feat, norm, score, out):
+def filter(feat, norm, score, pos, out):
     start = time.time()
     samp = Filter(feat)
-    samp.formatFeatures(norm=norm)
+    samp.formatFeatures(norm=norm, pos=pos)
     samp.filterFeatures(r2=score)
     end = time.time()
     print('Time:', end-start)
@@ -117,8 +120,8 @@ def match_tables(queryq, queryf, refq, reff, mgf, ppm, rtabs, out):
              'N feat in spectra': len(ind),
              'Inter match spectra': len(set(ind).intersection(set(qtab['row ID'].astype(str))))
             }
-    with open('%s_stats.json' % out) as f:
-        json.dump(stats, f)
+    with open('%s_stats.json' % out, 'w+') as f:
+        json.dump(stats, f, indent=4)
 
     qtab.to_csv('%s_match.tsv' % out, sep='\t', index=None)
 
