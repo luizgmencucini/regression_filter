@@ -42,11 +42,31 @@ html = '''<!DOCTYPE html>
 
     <script src="https://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.4/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/select/1.6.2/js/dataTables.select.min.js"></script>
+
     <script>
         var dataSet = REPLACE;
         console.log(dataSet);
         $(document).ready(function() {
         $('#resTable').DataTable( {
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'csv',
+                    text: 'Export Selected',
+                    exportOptions: {
+                        modifier: {
+                            selected: true
+                        }
+                    }
+                }
+            ],
             data : dataSet,
             // add column definitions to map your json to the table
             "columns": [
@@ -54,7 +74,8 @@ html = '''<!DOCTYPE html>
             {title: "row m/z"},
             {title: "row retention time"},
             {title: "XIC"}
-            ]
+            ],
+            select: true
         } );
         });
     </script>
@@ -94,8 +115,8 @@ def create_report(report_print, out_file='regfilter_report.html'):
     """
 
     for i in report_print.index:
-        fig = "./figs/%s.png" % report_print.loc[i, 'row ID']
-        report_print.loc[i, 'XIC'] = '<img src="%s" width="120" height="120">' % fig
+        fig = "./images/%s.png" % report_print.loc[i, 'row ID']
+        report_print.loc[i, 'XIC'] = '<img src="%s" width="190" height="190">' % fig
 
     html_local = re.sub('REPLACE', json.dumps(report_print.apply(lambda a: a.tolist(), axis=1).tolist()), html)
     with open(out_file, 'w+') as f:
